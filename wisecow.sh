@@ -1,46 +1,29 @@
-#!/usr/bin/env bash
+#!/bin/bash
 
-SRVPORT=4499
-RSPFILE=response
+# Ensure /usr/games is in the PATH
+PATH=$PATH:/usr/games
+export PATH
 
-rm -f $RSPFILE
-mkfifo $RSPFILE
+# Debug: Check for required commands
+for cmd in fortune cowsay nc; do
+    if ! command -v $cmd &> /dev/null; then
+        echo "Error: $cmd is not installed or not in PATH."
+        exit 1
+    fi
+done
 
-get_api() {
-	read line
-	echo $line
-}
+echo "Wisdom served on port=4499..."
+while true; do
+    # Generate the "wisdom" message
+    MESSAGE=$(fortune | cowsay)
 
-handleRequest() {
-    # 1) Process the request
-	get_api
-	mod=`fortune`
+    # Build the HTTP response
+    RESPONSE="HTTP/1.1 200 OK\r\n"
+    RESPONSE+="Content-Type: text/plain\r\n"
+    RESPONSE+="Content-Length: ${#MESSAGE}\r\n"
+    RESPONSE+="\r\n"
+    RESPONSE+="$MESSAGE"
 
-cat <<EOF > $RSPFILE
-HTTP/1.1 200
-
-
-<pre>`cowsay $mod`</pre>
-EOF
-}
-
-prerequisites() {
-	command -v cowsay >/dev/null 2>&1 &&
-	command -v fortune >/dev/null 2>&1 || 
-		{ 
-			echo "Install prerequisites."
-			exit 1
-		}
-}
-
-main() {
-	prerequisites
-	echo "Wisdom served on port=$SRVPORT..."
-
-	while [ 1 ]; do
-		cat $RSPFILE | nc -lN $SRVPORT | handleRequest
-		sleep 0.01
-	done
-}
-
-main
+    # Serve the response
+    echo -e "$RESPONSE" | nc -l -p 4499 -q 1
+done
