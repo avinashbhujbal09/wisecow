@@ -12,6 +12,10 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v3
 
+      - name: Verify Directory Structure
+        run: |
+          ls -la  # This will display the contents of the working directory
+
       - name: Log in to Docker Hub
         uses: docker/login-action@v2
         with:
@@ -32,7 +36,12 @@ jobs:
         with:
           version: 'latest'
 
+      - name: Verify k8s-manifests Directory
+        run: |
+          ls -la ./k8s-manifests  # This will verify if the directory is present
+
       - name: Deploy to Kubernetes
         run: |
-          cd ./k8s-manifests
-          kubectl apply -f .
+          kubectl apply -f ./k8s-manifests/deployment.yaml
+          kubectl apply -f ./k8s-manifests/ingress.yaml
+          kubectl apply -f ./k8s-manifests/service.yaml
