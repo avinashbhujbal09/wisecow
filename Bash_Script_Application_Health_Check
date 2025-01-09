@@ -1,0 +1,25 @@
+#!/bin/bash
+
+# Application URL
+APP_URL="http://localhost:4499"  
+# Log file
+LOG_FILE="app_health.log"
+
+# Function to check application status
+check_app_status() {
+    # Perform an HTTP GET request and capture the HTTP status code
+    STATUS_CODE=$(curl -o /dev/null -s -w "%{http_code}" "$APP_URL")
+
+    # Check if the status code is 200 (OK)
+    if [ "$STATUS_CODE" -eq 200 ]; then
+        echo "$(date): Application is UP (HTTP $STATUS_CODE)" | tee -a $LOG_FILE
+    else
+        echo "$(date): ALERT! Application is DOWN or unresponsive (HTTP $STATUS_CODE)" | tee -a $LOG_FILE
+    fi
+}
+
+# Run the health check in a loop
+while true; do
+    check_app_status
+    sleep 10  # Check every 10 seconds
+done
