@@ -39,7 +39,7 @@ jobs:
 
       - name: Verify k8s-manifests Directory
         run: |
-          ls -la ./k8s-manifests  # Check if the k8s-manifests directory is available
+          ls -la /k8s-manifests  # Check if the k8s-manifests directory is available
 
       - name: Deploy to Kubernetes
         run: |
