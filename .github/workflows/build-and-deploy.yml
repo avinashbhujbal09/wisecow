@@ -9,40 +9,29 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout Code
-        uses: actions/checkout@v3
+    - name: Checkout Code
+      uses: actions/checkout@v3
 
-      - name: Verify Repository Contents
-        run: |
-          git status  # Verify the repository status
-          ls -la      # List all files in the working directory
+    - name: Log in to Docker Hub
+      uses: docker/login-action@v2
+      with:
+        username: ${{ secrets.DOCKER_USERNAME }}
+        password: ${{ secrets.DOCKER_PASSWORD }}
 
-      - name: Log in to Docker Hub
-        uses: docker/login-action@v2
-        with:
-          username: ${{ secrets.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKER_PASSWORD }}
-
-      - name: Build and Push Docker Image
-        run: |
-          docker build -t avibhujbal/wisecow:latest .
-          docker push avibhujbal/wisecow:latest
+    - name: Build and Push Docker Image
+      run: |
+        docker build -t avibhujbal/wisecow:latest .
+        docker push avibhujbal/wisecow:latest
 
   deploy:
     runs-on: ubuntu-latest
     needs: build
     steps:
-      - name: Set up kubectl
-        uses: azure/setup-kubectl@v3
-        with:
-          version: 'latest'
+    - name: Set up kubectl
+      uses: azure/setup-kubectl@v3
+      with:
+        version: 'latest'
 
-      - name: Verify k8s-manifests Directory
-        run: |
-          ls -la /k8s-manifests  # Check if the k8s-manifests directory is available
-
-      - name: Deploy to Kubernetes
-        run: |
-          kubectl apply -f /k8s-manifests/deployment.yaml
-          kubectl apply -f /k8s-manifests/ingress.yaml
-          kubectl apply -f /k8s-manifests/service.yaml
+    - name: Deploy to Kubernetes
+      run: |
+        kubectl apply -f k8s-manifests/
